@@ -26,9 +26,8 @@ out TCCR0B, R16 //wpisanie wartosci z R16 do
 ldi R16, 1
 sts TIMSK0, R16
 
-ldi R17, 0x00
-ldi R18, 0x01
 ldi R19, 0x00
+ldi R18, 0x01
 
 sei // ustawienie flagi i == wyzwolenie mozliwosci obslugi przerwan
 koniec: jmp koniec
@@ -36,9 +35,23 @@ koniec: jmp koniec
 
 Obsluga:
 //zapalanie jesli zgaszona gaczenie jesli zapalona
-cp 
+cp R19, R18
+brne pomin
 
+//tu gasimy
+ldi R17, 0x00
+ldi R19, 0x00
+rjmp bla
+
+pomin:
+//tu zapalamy
+ldi R17, 0x40//0b0001 0000(górna zielona)
+ldi R19, 0x01
+bla:
+call Wykonaj
 reti
+
+
 
 
 Wykonaj://procedura gasi pozostałe diody i zapala wła ciwš
@@ -49,3 +62,4 @@ or R16, R17
 out PORTD, R16
 pop R16
 ret
+
