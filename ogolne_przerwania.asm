@@ -1,10 +1,23 @@
 #include<usb1287def.inc>
 
-.org 0x0 // sprawdzic co tak na prawde robi .org
+// sprawdzic co tak na prawde robi .org
+.org 0x0 //przerwanie zwiazane z resetem, jak nacisnie sie reset to zrobi skok do etykiety start
 jmp Start
 
-.org 0x2e // obsluga przerwania timera -> sprawdziæ z dokumentacj¹
+.org 0x2e 	// obsluga przerwania timera, ten konkretny adres to timer/counter0 overflow
+		// mogl by to tez byc timer/counter0 compare match A
+		//  		      timer/counter0 compare match B
+		// istenieje tez timer/counter 1, 2 i 3 z czego, 1 ma A, B, C; 2 tylko A, B; 3 ma dodatkowy tryb Capture Event 
 jmp Obsluga
+
+/* timery 0, 1, 3 maja ten sam prescaler, ale moga miec rozne ustawienia
+ * prescaler sluzy do dzielenia czestotliwosci zegara na f_clk/8, 64, 256, 1024
+ */
+
+
+
+
+
 
 Start:
 // tu inicjacja obslugi stosu
@@ -27,11 +40,26 @@ ldi R16, 5 	//0b101 ustawienie wartosci ,
 out TCCR0B, R16 //wpisanie wartosci z R16 do 
 		// Out To I/O Location
 		// Timer Counter Control Register
+		// bit CS02:0 odpowiadaja za wybor zrodla sygnalu zegara lub wybor wybor prescalera
+		// 0b000 zegar zatrzymany brak zrodla
+		// 0b001 brak dzielnika(prescalera) dziala z czestotliwoscia pracy zegara
+		// 0b010 dzielenie prze 8
+		// 0b011 dzielenie prze 64
+		// 0b100 dzielenie prze 256
+		// 0b101 dzielenie prze 1024
+		// 0b110 zewnetrzny zegar na opadajacym zboczu
+		// 0b111 zewnetrzny zegar na wznoszacym zboczu
+// wazny jest tu rejestr 'output compare register A - OCR0A' zeby wygenerowc przerwanie dla A musi byc rowny licznikowi timera
+// i rejestr 'outbut compare register B - OCR0B' to samo tylko ze B
 
 // ustawienie trybu pracy timera
 ldi R16, 1
 sts TIMSK0, R16 	// Store Direct To Data Space
 			// Timer counter Interrupt Mask register
+			// bity 7 do 3 sa zarezerwowane i zawsze czytane jako 0
+			// bit 2 ustawiony na 1 wlacza przerwanie B
+			// bit 1 ustawiony na 1 wlacza przerwanie A
+			// bit 0 ustawiony na 1 wlacza przerwanie w trakcie przepelnienia
 
 //zmienne kontroluj
 ldi R19, 0x00		// zmienna-flata przedstawiajaca stan diody 0=zgaszona, 1=zapalona
