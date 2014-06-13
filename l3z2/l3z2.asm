@@ -45,10 +45,10 @@ sts TCCR1B, R16 //wpisanie wartosci z R16 do
 
 
 /////////////////////////////////
-LDI R16, LOW(15624)
-LDI R17, HIGH(15624)
-STS OCR1AH, R17
-STS OCR1AL, R16
+ldi R16, LOW(15624)
+ldi R17, HIGH(15624)
+sts OCR1AH, R17
+sts OCR1AL, R16
 
 
 //zmienne kontroluj
@@ -65,15 +65,16 @@ rjmp SprawdzJoystic
 
 
 Dol:
-cpi R23, 0
+cpi R23, 1
 breq omin
 dec R23
-
+rjmp omin
 
 Gora:
 cpi R23, 10
 breq omin
 inc R23
+rjmp omin
 
 omin:
 call Pelna_petla
@@ -87,29 +88,9 @@ call Pelna_petla
 call Miganie
 rjmp SprawdzJoystic
 
-/** 
- *  zapalanie jesli zgaszona gaczenie jesli zapalona
- *  uwaga strasznie glupie sterowanie 
- */
-Obsluga: 		//tu automatycznie wylaczana jest flaga odpowiedzialna za obsluge przerwan
-	 		// domyslnie nie mozna przerwac przerwania
-cpi R19, 0 		// cpi = compare imediate
-breq Zapal 		// branch
-//tu gasimy
-ldi R17, 0x00 		// sterowanie dioda
-ldi R19, 0x00		// zmienna-flata przedstawiajaca stan diody 0=zgaszona, 1=zapalona
-rjmp powrot
 
-Zapal:
-//tu zapalamy
-ldi R17, 0x40		//0b0001 0000(gorna zielona)
-ldi R19, 0x01
 
-powrot:
-call Wykonaj
-reti //wracanie 
-
-Miganie:						; obsluga migania
+Miganie:						// obsluga migania
 cpi R23, 1
 breq Hz1
 cpi R23, 2
@@ -193,16 +174,47 @@ ldi R21, LOW(868)
 rjmp Wpisz
 ret
 
-Wpisz:						; koncowe przypisania
-sts OCR1AH, R20					; nowe wartosci do porownania
+Wpisz:						// koncowe przypisania
+sts OCR1AH, R20					// nowe wartosci do porownania
 sts OCR1AL, R21
 
-clr R20							; czyszczenie
+clr R20							// czyszczenie
 clr R21
 
-sts TCNT1H, R20					; zerowanie timera
+sts TCNT1H, R20					// zerowanie timera
 sts TCNT1L, R21
 ret
+
+
+Pelna_petla:
+dec R27
+cp R27, R31
+brne Pelna_petla
+ldi R27, 0xFF // po skonczeniu petla sprzata po sobie
+ret
+
+
+/** 
+ *  zapalanie jesli zgaszona gaczenie jesli zapalona
+ *  uwaga strasznie glupie sterowanie 
+ */
+Obsluga: 		//tu automatycznie wylaczana jest flaga odpowiedzialna za obsluge przerwan
+	 		// domyslnie nie mozna przerwac przerwania
+cpi R19, 0 		// cpi = compare imediate
+breq Zapal 		// branch
+//tu gasimy
+ldi R17, 0x00 		// sterowanie dioda
+ldi R19, 0x00		// zmienna-flata przedstawiajaca stan diody 0=zgaszona, 1=zapalona
+rjmp powrot
+
+Zapal:
+//tu zapalamy
+ldi R17, 0x40		//0b0001 0000(gorna zielona)
+ldi R19, 0x01
+
+powrot:
+call Wykonaj
+reti //wracanie 
 
 Wykonaj:		//procedura gasi pozostałe diody i zapala wła ciwš
 push R16
@@ -211,11 +223,4 @@ andi R16, 0x0F
 or R16, R17 
 out PORTD, R16
 pop R16
-ret
-
-Pelna_petla:
-dec R27
-cp R27, R31
-brne Pelna_petla
-ldi R27, 0xFF // po skonczeniu petla sprzata po sobie
 ret
