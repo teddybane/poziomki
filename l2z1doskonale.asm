@@ -7,13 +7,13 @@
 .org 0x0
 rjmp Ares
 
-
 /*Linie joystick'a:
 PB5-SELECT
 PB6-LEFT
 PB7-UP
 PE4-RIGHT
 PE7-DOWN
+
 Linie LED
 PD4-RED1
 PD5-GREEN1
@@ -31,7 +31,7 @@ push R16//dobrze jest zawsze odkładać używany rejestr na stos, przydaje się
 push R17
 
 ldi R16, 0b11100000//PORTB linie 5 do 7 w trybie wejściowym
-in R17, PORTB    //funkcja OR nie zmieni pozostałych bitów PORTx
+in R17, PORTB    //funkcja OR nie zmieni pozostałych bitów PORTx // czytanie z portuB do rejestru
 or R17, R16    //rejestr DDRB wyzerowany, ustawienie PORTB
 out PORTB, R17    //włącza podciąganie na liniach wejściowych
 
